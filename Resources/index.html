@@ -1,0 +1,122 @@
+$def with (title, name, content)
+<html>
+<head>
+    <title>$title</title>
+    <style>
+		tr.spaceUnder>td {
+		padding-bottom: 1em;
+	}
+    </style>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body>
+<p>$content</p>
+</br>
+
+<table style="width:100%">
+    <tr class="spaceUnder">
+        <td>Choose one instrument/ticker from above: <input type="text" name="Instrument" id="Instrument"></td>
+        <td>Choose second instrument for correlation : <input type="text" name="Instrument" id="Instrument"></td>
+    </tr>
+    <tr class="spaceUnder">
+        <td>Start Date: <input type="text" id="start_date"></td>
+        <td>End Date: <input type="text" id="end_date"></td>
+    </tr>
+
+    <tr class="spaceUnder">
+        <td>
+            <button onclick="intraday()">Click For Intraday Spots</button>
+        </td>
+        <td>
+            <button onclick="historical()">Click For Historical Spots</button>
+        </td>
+    </tr>
+    <tr class="spaceUnder">
+        <td>
+            <button onclick="correlation()">Click For Correlation of Spots</button>
+        </td>
+        <td>
+            <button onclick="interpolation()">Determine Linear Regression</button>
+        </td>
+    </tr>
+</table>
+
+<div id="output"></div>
+</br>
+<div id="line_chart"></div>
+</br>
+<p></p>
+</body>
+<script type="text/javascript">
+
+function intraday() {
+    symbol = document.getElementById("Instrument").value;
+	var xmlhttp = new XMLHttpRequest();   
+	xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var myArr = JSON.parse(this.responseText);
+        populateOutput(myArr);
+        }
+    };
+    xmlhttp.open("POST", "http://localhost:8080/GetIntradaySpot");
+    xmlhttp.setRequestHeader("Content-Type", "application/json");
+    xmlhttp.send(JSON.stringify({"symbol":symbol}));
+}
+
+function historical() {
+    symbol = document.getElementById("Instrument").value;
+	start_date = document.getElementById("start_date").value;
+	end_date = document.getElementById("end_date").value;
+	var xmlhttp = new XMLHttpRequest();   
+	xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var myArr = JSON.parse(this.responseText);
+        populateOutput(myArr);
+        }
+    };   
+    xmlhttp.open("POST", "http://localhost:8080/GetArchivalSpot");
+    xmlhttp.setRequestHeader("Content-Type", "application/json");
+    response = xmlhttp.send(JSON.stringify({"symbol":symbol, "start_date":start_date, "end_date":end_date}));
+}
+
+function populateOutput(arr) {
+    var out = " <h3>Timestamp  |  Volume  |  Open  |  Close  |  High  |  Low </h3>";
+    var i;
+	var closeArr = [];
+	var dates = [];
+    for(i = 0; i < arr.length; i++) {
+        out += arr[i].timestamp + ' | ' + arr[i].volume + ' | ' + arr[i].open + ' | ' + arr[i].close + ' | ' 
+		+ arr[i].high + ' | ' + arr[i].low + '</br>';
+		dates[i] = arr[i].timestamp;
+		closeArr[i] = arr[i].close;
+	}
+    document.getElementById("output").innerHTML = out;
+	drawChart(dates, closeArr);
+}
+
+google.charts.load('current', {'packages':['line']});
+
+    function drawChart(dates, closeArr) {
+
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Dates');
+      data.addColumn('number', 'Spot Prices');
+	for (var i=0;i<dates.length;i+=1){
+      data.addRows([[dates[i], closeArr[i]]]);
+}
+      var options = {
+        chart: {
+          title: 'Historical Spot prices',
+          subtitle: 'In dollars (USD)'
+        },
+		width: 1200,
+        height: 500
+		};
+
+      var chart = new google.charts.Line(document.getElementById('line_chart'));
+
+      chart.draw(data, google.charts.Line.convertOptions(options));
+    }
+
+</script>
+</html>
