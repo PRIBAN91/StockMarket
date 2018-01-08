@@ -18,4 +18,4 @@ def read_csv_to_cassandra(csv_path):
                     print " ".join(row)
 
 # Only one time usage
-# read_csv_to_cassandra("C:\Users\prita\Downloads\prices763fefc.csv")
+# read_csv_to_cassandra("C:\Users\prita\Downloads\RawData.csv")

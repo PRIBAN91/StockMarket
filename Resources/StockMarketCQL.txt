@@ -1,0 +1,32 @@
+
+CREATE KEYSPACE IF NOT EXISTS stock_market WITH REPLICATION = {'class' : 'SimpleStrategy', 'replication_factor' : 1};
+
+USE stock_market;
+
+create table historical_spots (
+		symbol varchar,
+		date_eod timestamp,
+		open double,
+		close double,
+		low double,
+		high double,
+		volume double,
+		PRIMARY KEY (symbol, date_eod)
+)
+WITH CLUSTERING ORDER BY (date_eod DESC);
+
+#INSERT INTO historical_spots (symbol, date_eod, open, close, low, high, volume) VALUES (%s, %s, %s, %s, %s, %s, %s);
+
+create table intraday_spots (
+		symbol varchar,
+		time_uuid uuid,
+		open double,
+		close double,
+		low double,
+		high double,
+		volume double,
+		PRIMARY KEY (symbol, time_uuid)
+)
+WITH CLUSTERING ORDER BY (time_uuid DESC);
+
+#INSERT INTO intraday_spots (symbol, time_uuid, open, close, low, high, volume) VALUES (%s, %s, %s, %s, %s, %s, %s) USING TTL 86400;

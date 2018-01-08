@@ -4,7 +4,6 @@ import sched
 import time
 import requests
 import json
-import statsmodels.api as sm
 
 scheduler = sched.scheduler(time.time, time.sleep)
 prepared_stmt = session.prepare("select distinct symbol from historical_spots")
