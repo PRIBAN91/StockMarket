@@ -1,5 +1,6 @@
 from DataAccess.CassandraConn import session
 from cassandra.query import BatchStatement, ConsistencyLevel
+from Utilities.RetryDecorator import retry
 import csv
 import datetime
 
@@ -14,7 +15,7 @@ def read_csv_to_cassandra(csv_path):
                 if i > 0:
                     if symbol != row[1]:
                         if i > 1:
-                            session.execute(batch)
+                            execute_with_retry(batch)
                         symbol = row[1]
                         batch, insert_statement = get_new_batch()
                     batch.add(insert_statement, (row[1], datetime.datetime.strptime(row[0], "%Y-%m-%d"), float(row[2]),
@@ -23,6 +24,11 @@ def read_csv_to_cassandra(csv_path):
                 print "{} row has failed to insert because of the following Exception: {}".format(str(i), str(e))
                 print " ".join(row)
         session.execute(batch)
+
+
+@retry(Exception)
+def execute_with_retry(batch):
+    session.execute(batch)
 
 
 def get_new_batch():

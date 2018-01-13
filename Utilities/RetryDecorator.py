@@ -2,7 +2,7 @@ import time
 from functools import wraps
 
 
-def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=None):
+def retry(exception_to_check, tries=4, delay=3, back_off=2, logger=None):
     def deco_retry(f):
         @wraps(f)
         def f_retry(*args, **kwargs):
@@ -10,7 +10,7 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=None):
             while mtries > 1:
                 try:
                     return f(*args, **kwargs)
-                except ExceptionToCheck, e:
+                except exception_to_check, e:
                     msg = "%s, Retrying in %d seconds..." % (str(e), mdelay)
                     if logger:
                         logger.warning(msg)
@@ -18,7 +18,7 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=None):
                         print msg
                     time.sleep(mdelay)
                     mtries -= 1
-                    mdelay *= backoff
+                    mdelay *= back_off
             return f(*args, **kwargs)
 
         return f_retry  # true decorator
