@@ -6,8 +6,19 @@ $def with (title, name, content)
 		tr.spaceUnder>td {
 		padding-bottom: 1em;
 	}
+
     </style>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+         \$(function() {
+            \$( "#start_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
+            \$( "#end_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
+         });
+
+    </script>
 </head>
 <body>
 <p>$content</p>
@@ -49,6 +60,7 @@ $def with (title, name, content)
 </body>
 <script type="text/javascript">
 
+
 function intraday() {
     symbol = document.getElementById("Instrument").value;
 	var xmlhttp = new XMLHttpRequest();   
@@ -67,12 +79,18 @@ function historical() {
     symbol = document.getElementById("Instrument").value;
 	start_date = document.getElementById("start_date").value;
 	end_date = document.getElementById("end_date").value;
+
+   
 	var xmlhttp = new XMLHttpRequest();   
 	xmlhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
         var myArr = JSON.parse(this.responseText);
+		if(myArr.length > 0){
         populateOutput(myArr);
-        }
+        }else{
+		alert("No data for the selected period of time.");
+		}
+		}
     };   
     xmlhttp.open("POST", "http://localhost:8080/GetArchivalSpot");
     xmlhttp.setRequestHeader("Content-Type", "application/json");
@@ -94,6 +112,7 @@ function populateOutput(arr) {
 	drawChart(dates, closeArr);
 }
 
+
 google.charts.load('current', {'packages':['line']});
 
     function drawChart(dates, closeArr) {
@@ -103,7 +122,7 @@ google.charts.load('current', {'packages':['line']});
       data.addColumn('number', 'Spot Prices');
 	for (var i=0;i<dates.length;i+=1){
       data.addRows([[dates[i], closeArr[i]]]);
-}
+	}
       var options = {
         chart: {
           title: 'Historical Spot prices',
@@ -117,6 +136,7 @@ google.charts.load('current', {'packages':['line']});
 
       chart.draw(data, google.charts.Line.convertOptions(options));
     }
+
 
 </script>
 </html>

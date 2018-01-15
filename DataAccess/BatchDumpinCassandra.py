@@ -15,7 +15,7 @@ def read_csv_to_cassandra(csv_path):
                 if i > 0:
                     if symbol != row[1]:
                         if i > 1:
-                            execute_with_retry(batch)
+                            execute_batch(batch)
                         symbol = row[1]
                         batch, insert_statement = get_new_batch()
                     batch.add(insert_statement, (row[1], datetime.datetime.strptime(row[0], "%Y-%m-%d"), float(row[2]),
@@ -27,7 +27,7 @@ def read_csv_to_cassandra(csv_path):
 
 
 @retry(Exception)
-def execute_with_retry(batch):
+def execute_batch(batch):
     session.execute(batch)
 
 

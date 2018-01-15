@@ -5,10 +5,12 @@ import datetime
 class FetchArchivalSpotDetails:
     def __init__(self, symbol, start_date, end_date):
         self.symbol = symbol
-        self.start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d") if start_date is not None else start_date
-        self.end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d") if end_date is not None else end_date
+        self.start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d") if start_date != "" else None
+        self.end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d") if end_date != "" else None
 
     def get_user_requested_data(self):
+        if self.symbol is None or self.symbol == "":
+            return []
         if self.start_date is None:
             return self.get_all_stock_data()
         if self.end_date is None:
