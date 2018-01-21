@@ -27,7 +27,7 @@ $def with (title, name, content)
 <table style="width:100%">
     <tr class="spaceUnder">
         <td>Choose one instrument/ticker from above: <input type="text" name="Instrument" id="Instrument"></td>
-        <td>Choose second instrument for correlation : <input type="text" name="Instrument" id="Instrument"></td>
+        <td>Choose second instrument for Correlation : <input type="text" name="Instrument1" id="Instrument1"></td>
     </tr>
     <tr class="spaceUnder">
         <td>Start Date: <input type="text" id="start_date"></td>
@@ -78,19 +78,17 @@ function intraday() {
 function historical() {
     symbol = document.getElementById("Instrument").value;
 	start_date = document.getElementById("start_date").value;
-	end_date = document.getElementById("end_date").value;
-
-   
+	end_date = document.getElementById("end_date").value; 
 	var xmlhttp = new XMLHttpRequest();   
 	xmlhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
         var myArr = JSON.parse(this.responseText);
-		if(myArr.length > 0){
-        populateOutput(myArr);
-        }else{
-		alert("No data for the selected period of time.");
+		if(myArr.length > 0) {
+			populateOutput(myArr);
+        } else {
+			alert("No data for the selected period of time.");
 		}
-		}
+	}
     };   
     xmlhttp.open("POST", "http://localhost:8080/GetArchivalSpot");
     xmlhttp.setRequestHeader("Content-Type", "application/json");
@@ -109,34 +107,48 @@ function populateOutput(arr) {
 		closeArr[i] = arr[i].close;
 	}
     document.getElementById("output").innerHTML = out;
-	drawChart(dates, closeArr);
+	drawChart(dates, closeArr, 'Spot Prices', 'Historical Spot prices', 'In dollars (USD)');
 }
 
+function correlation() {
+	symbol1 = document.getElementById("Instrument").value;
+	symbol2 = document.getElementById("Instrument1").value;
+	var xmlhttp = new XMLHttpRequest();   
+	xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var result = JSON.parse(this.responseText);
+			var out = "<h3>Percentile50 Correlation = " + result.median_corr + "</h3>";
+			document.getElementById("output").innerHTML = out;
+			drawChart(result.hist_dates, result.hist_corr, 'Correlation', 'Historical Correlations', 'Window Size = 500');
+		}
+    };   
+    xmlhttp.open("POST", "http://localhost:8080/GetHistoricalCorrelation");
+    xmlhttp.setRequestHeader("Content-Type", "application/json");
+    response = xmlhttp.send(JSON.stringify({"symbol1":symbol1, "symbol2":symbol2}));
+}
 
 google.charts.load('current', {'packages':['line']});
 
-    function drawChart(dates, closeArr) {
-
-      var data = new google.visualization.DataTable();
-      data.addColumn('string', 'Dates');
-      data.addColumn('number', 'Spot Prices');
-	for (var i=0;i<dates.length;i+=1){
-      data.addRows([[dates[i], closeArr[i]]]);
-	}
-      var options = {
-        chart: {
-          title: 'Historical Spot prices',
-          subtitle: 'In dollars (USD)'
-        },
+function drawChart(dates, dataArr, columnName, titleInp, subtitleInp) {
+	  var data = new google.visualization.DataTable();
+	  data.addColumn('string', 'Dates');
+	  data.addColumn('number', columnName);
+	  for (var i=0;i<dates.length;i+=1){
+		  data.addRows([[dates[i], dataArr[i]]]);
+	  }
+	  var options = {
+		chart: {
+		  title: titleInp,
+		  subtitle: subtitleInp
+		},
 		width: 1200,
-        height: 500
+		height: 500
 		};
 
-      var chart = new google.charts.Line(document.getElementById('line_chart'));
+	  var chart = new google.charts.Line(document.getElementById('line_chart'));
 
-      chart.draw(data, google.charts.Line.convertOptions(options));
-    }
-
+	  chart.draw(data, google.charts.Line.convertOptions(options));
+}
 
 </script>
 </html>
